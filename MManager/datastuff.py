@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-
 def graphIncomePerIncomeStream(conn):
     cursor = conn.cursor()
     query = "SELECT ifId,SUM(amt) FROM IncomeLog GROUP BY ifId;"
@@ -24,4 +22,12 @@ def graphIncomePerIncomeStream(conn):
     plt.title("Income per stream")
 
     plt.show()
+    print('nigga')
 
+
+def expenseSummary(conn , *args):
+
+    cursor = conn.cursor()
+    
+    
+    return

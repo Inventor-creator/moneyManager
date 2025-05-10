@@ -41,8 +41,15 @@ while True:
             case 2:
                 print("Your Expense budget is: " ,getStuff.getBudget(connection).fetchall()[0])
             case 3:
-                dataStuff.graphIncomePerIncomeStream(connection)
-                
+                print("""
+1: Get income per income stream
+2: Get expenses summary      
+""")
+                choice = int(input("What do you want: "))
+                if choice == 1:
+                    dataStuff.graphIncomePerIncomeStream(connection)
+                elif choice ==2:
+                    dataStuff.expenseSummary(connection)
             case 5:
                 income, ifId = tableOps.logIncome(connection)
                 tableOps.insert(connection , 'IncomeLog' , '(amt , month , year , ifId)' , income, 3, 2024 , ifId)
