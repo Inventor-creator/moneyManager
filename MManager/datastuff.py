@@ -22,12 +22,13 @@ def graphIncomePerIncomeStream(conn):
     plt.title("Income per stream")
 
     plt.show()
-    print('nigga')
+    
 
 
 def expenseSummary(conn , *args):
 
     cursor = conn.cursor()
+
     
-    
+
     return

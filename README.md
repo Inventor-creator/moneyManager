@@ -6,3 +6,6 @@ add a fixed expense feature
 use pandas to display common expenses ( spotify wrapped typa stuff)
 edit expense budgets
 
+use negative value on wishlist items for unlimited savings
+
+to track if this months fixed expenses have been paid or not

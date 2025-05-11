@@ -13,23 +13,26 @@ filename = "moneyDB.db"
 connection = sqlite3.connect(os.path.join(basedir, filename))
 
 # MManager.tableOps.insert(connection , 'IncomeLog' , '(amt , month , year)' , 1000, 3, 2024)
+# cursor = connection.cursor()
+# print(cursor.execute("SELECT savings FROM currentAcc").fetchone())
 
 while True:
     print("""
-1: Get Current Savings
-2: Get Current Expense Budget
+1: Savings and expense budget
 3: Get Stats
-4: Increase / Decrease Expense Budget
+4: Edit Spread Settings For Wishlist and Savings
 5: Log income
+6: Add to Wishlist
+7: Check wishlist
 0: Exit
 """)
     
-    print("What do you want to do (1/2/3/4/5/0): " , end='')
+    print("What do you want to do (1/2/3/4/5/6/7/0): " , end='')
     try:
         cmd = int(input())
         if cmd == 0:
             break
-        if cmd > 5 or cmd < 0:
+        if cmd > 7 or cmd < 0:
             raise 
     except:
         print("Enter a valid answer")
@@ -37,29 +40,55 @@ while True:
     try:
         match cmd:
             case 1:
-                print("Your Savings are: " ,getStuff.getSavings(connection).fetchall()[0])
-            case 2:
-                print("Your Expense budget is: " ,getStuff.getBudget(connection).fetchall()[0])
+                print("Your Savings are: " ,getStuff.getSavings(connection).fetchone()[0])
+                print("Your Expense budget is: " ,getStuff.getBudget(connection).fetchone()[0])
             case 3:
                 print("""
 1: Get income per income stream
 2: Get expenses summary      
+""")            
+                while True:
+                    choice = int(input("What do you want 1/2: "))
+                    if choice == 1:
+                        dataStuff.graphIncomePerIncomeStream(connection)
+                        break
+                    elif choice == 2:
+                        dataStuff.expenseSummary(connection)
+                        break
+                    elif choice < 0:
+                        break
+                    else:
+                        print("print a valid input")
+                        continue
+            case 4:
+                print("""
+1: Edit percentage of income going to savings
+2: Edit percentage of income going to wishlist 
 """)
-                choice = int(input("What do you want: "))
-                if choice == 1:
-                    dataStuff.graphIncomePerIncomeStream(connection)
-                elif choice ==2:
-                    dataStuff.expenseSummary(connection)
+                while True:
+                    choice = int(input("What do you want 1/2: "))
+                    if choice == 1:
+                        tableOps.setSavingsPercentage(connection)
+                        break
+                    elif choice == 2:
+                        tableOps.setWishlistPercentage(connection)
+                        break
+                    elif choice < 0:
+                        break
+                    else:
+                        print("print a valid input")
+                        continue
             case 5:
-                income, ifId = tableOps.logIncome(connection)
-                tableOps.insert(connection , 'IncomeLog' , '(amt , month , year , ifId)' , income, 3, 2024 , ifId)
+                tableOps.logIncome(connection)
+                
             case _:
                 print("something went wrong")          
     except :
 
         print("you havent added anything as of yet ")    
-
     
-    break
+    
 
 connection.close()
+
+# UPDATE currentAcc  SET valWishlist = 50 WHERE idx = 1;
