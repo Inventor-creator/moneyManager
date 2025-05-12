@@ -8,8 +8,10 @@ def deleteRow(conn , tableName , whereDelete,wheredeleteValue):
 
 def update(conn ,tableName, toUpdate , updateValue , where , whereValue):
     updateCur = conn.cursor()
-
-    query = f"UPDATE {tableName} SET {toUpdate} = {updateValue} WHERE {where} = {whereValue};"
+    if type(updateValue) == str:
+        query = f"UPDATE {tableName} SET {toUpdate} = '{updateValue}' WHERE {where} = {whereValue};"
+    else:
+        query = f"UPDATE {tableName} SET {toUpdate} = {updateValue} WHERE {where} = {whereValue};"
     updateCur.execute(query)
     conn.commit()
 
@@ -117,3 +119,80 @@ def setWishlistPercentage(conn):
     cursor.execute(query)
     conn.commit()
     print(f"New value set to {percentage}")    
+
+def changeIncomeStreams(conn):
+    cursor = conn.cursor()
+    getAllIncomeFields = 'SELECT * FROM IncomeFields;'
+    incomeFields = cursor.execute(getAllIncomeFields).fetchall()
+    
+    endstring = 'Enter your choice '
+
+    for field in incomeFields:
+        print(f"{field[0]} : {field[1]}")
+        endstring += f'{field[0]}|'
+
+    endstring = endstring[:-1] + ": "
+
+    while True:
+        try:
+            ifId = int(input(endstring))
+            if ifId > int(endstring[-3]):
+                raise
+            elif ifId < 0:
+                print("going back \n")
+                return
+            break
+        except:
+            print("enter a valid input \n ")
+            continue
+    
+    print(f"The selected income field is: {ifId}-{cursor.execute(f'SELECT name FROM incomeFields WHERE ifId = {ifId};').fetchone()[0]}" )
+    
+    print("""
+1:Update Field
+2:Delete Field
+""")
+    
+    while True:
+        operation = int(input("What do you want to do 1/2: "))
+        if operation < 1 or operation > 2:
+            print("enter a valid input")
+            continue
+        elif operation == -1:
+            break
+        elif operation == 1:
+            while True:
+                upField = str(input("Enter the updated name field of the incomeField: "))
+                if not upField:
+                    print("Enter a valid input please")
+                    continue
+                else:
+                    try:    
+                        update(conn ,"incomeFields", "name" , f'{upField}' , "ifId" , ifId)
+                    except:
+                        print("Somethings wrong")
+                    print("Name of field has been updated! ")
+                    break
+            break
+
+        else:
+            while True:
+                print("""
+Do you want to delete the field?
+1: Confirm
+2: Back
+""")
+                confirm = int(input("1/2: "))
+                if confirm < 1 or confirm > 2:
+                    print("enter a valid input")
+                    continue
+                elif confirm == 1:
+                    deleteRow(conn , "incomeFields" , "ifId" , ifId)
+                    print("Field has been deleted! ")
+                    break
+                elif confirm == 2:
+                    break
+            break
+                    
+
+

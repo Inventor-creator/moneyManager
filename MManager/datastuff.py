@@ -12,9 +12,13 @@ def graphIncomePerIncomeStream(conn):
     incomePerId = []
     for i in gipis:
         query = f"SELECT name FROM incomeFields WHERE ifId = {i[0]};"
-        nameField = cursor.execute(query).fetchone()[0]
-        ids.append(nameField)
-        incomePerId.append(i[1])
+        try:
+            nameField = cursor.execute(query).fetchone()[0]
+            ids.append(nameField)
+            incomePerId.append(i[1])
+        except:
+            print("Field not found")
+        
 
     plt.bar(ids , incomePerId)
     plt.xlabel("Streams")

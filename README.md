@@ -9,3 +9,5 @@ edit expense budgets
 use negative value on wishlist items for unlimited savings
 
 to track if this months fixed expenses have been paid or not
+
+format the matplot table

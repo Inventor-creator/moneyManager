@@ -19,11 +19,12 @@ connection = sqlite3.connect(os.path.join(basedir, filename))
 while True:
     print("""
 1: Savings and expense budget
+2: Log Expenses and Fixed Expenses *
 3: Get Stats
 4: Edit Spread Settings For Wishlist and Savings
 5: Log income
-6: Add to Wishlist
-7: Check wishlist
+6: Change Income streams 
+7: Wishlist actions *
 0: Exit
 """)
     
@@ -80,7 +81,8 @@ while True:
                         continue
             case 5:
                 tableOps.logIncome(connection)
-                
+            case 6:
+                tableOps.changeIncomeStreams(connection)
             case _:
                 print("something went wrong")          
     except :
