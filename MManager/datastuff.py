@@ -18,7 +18,6 @@ def graphIncomePerIncomeStream(conn):
             incomePerId.append(i[1])
         except:
             print("Field not found")
-        
 
     plt.bar(ids , incomePerId)
     plt.xlabel("Streams")

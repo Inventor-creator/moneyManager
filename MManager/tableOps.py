@@ -125,6 +125,8 @@ def changeIncomeStreams(conn):
     getAllIncomeFields = 'SELECT * FROM IncomeFields;'
     incomeFields = cursor.execute(getAllIncomeFields).fetchall()
     
+    #add an option to add income stream
+
     endstring = 'Enter your choice '
 
     for field in incomeFields:
