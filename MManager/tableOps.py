@@ -22,13 +22,21 @@ def insert(con , *args):
     tablename , thingies , *others = args
     #print ( tablename , args)
     temp = []
-    
-    for i in others:
-        temp.append(i)
-    insertvalues = tuple(temp)
+    # print(type(others) , others)
+    if len(others) == 1:
+        if type(others[0]) == str:
+            query = f"INSERT INTO {tablename}{thingies} VALUES('{others[0]}');"
+        else:
+            query = f'INSERT INTO {tablename}{thingies} VALUES({others[0]});'
+        insCursor.execute(query)
+        con.commit()
+        return
+
+  
+    insertvalues = tuple(others)
     # for i in args:
     #     print(i)
-    
+    print(insertvalues)
     query = f"INSERT INTO {tablename}{thingies} VALUES{insertvalues};"
     
     insCursor.execute(query)
@@ -125,76 +133,103 @@ def changeIncomeStreams(conn):
     getAllIncomeFields = 'SELECT * FROM IncomeFields;'
     incomeFields = cursor.execute(getAllIncomeFields).fetchall()
     
-    #add an option to add income stream
-
-    endstring = 'Enter your choice '
-
-    for field in incomeFields:
-        print(f"{field[0]} : {field[1]}")
-        endstring += f'{field[0]}|'
-
-    endstring = endstring[:-1] + ": "
-
-    while True:
-        try:
-            ifId = int(input(endstring))
-            if ifId > int(endstring[-3]):
-                raise
-            elif ifId < 0:
-                print("going back \n")
-                return
-            break
-        except:
-            print("enter a valid input \n ")
-            continue
-    
-    print(f"The selected income field is: {ifId}-{cursor.execute(f'SELECT name FROM incomeFields WHERE ifId = {ifId};').fetchone()[0]}" )
     
     print("""
+1: Add new Field
+2: Edit old Fields
+""")
+
+    while True: 
+        choice = int(input("Enter your choice 1/2: "))
+        if choice and choice <=2 and choice > 0:
+            break
+        elif choice > 2:
+            print("Enter a valid input")
+            continue
+        else:
+            print("Going back")
+            break
+    
+    if choice == 2:
+        endstring = 'Enter your choice '
+        index = 1
+        idct = {}
+        for field in incomeFields:
+            print(f"{index} : {field[1]}")
+            endstring += f'{index}|'
+            idct[index] = field[0]
+            index += 1
+
+        endstring = endstring[:-1] + ": "
+
+        while True:
+            try:
+                ifId = int(input(endstring))
+                if ifId > int(endstring[-3]) or ifId == 0:
+                    raise
+                elif ifId < 0:
+                    print("going back \n")
+                    return
+                break
+            except:
+                print("enter a valid input \n ")
+                continue
+        
+        print(f"The selected income field is: {ifId}-{cursor.execute(f'SELECT name FROM incomeFields WHERE ifId = {idct[ifId]};').fetchone()[0]}" )
+        
+        print("""
 1:Update Field
 2:Delete Field
-""")
-    
-    while True:
-        operation = int(input("What do you want to do 1/2: "))
-        if operation < 1 or operation > 2:
-            print("enter a valid input")
-            continue
-        elif operation == -1:
-            break
-        elif operation == 1:
-            while True:
-                upField = str(input("Enter the updated name field of the incomeField: "))
-                if not upField:
-                    print("Enter a valid input please")
-                    continue
-                else:
-                    try:    
-                        update(conn ,"incomeFields", "name" , f'{upField}' , "ifId" , ifId)
-                    except:
-                        print("Somethings wrong")
-                    print("Name of field has been updated! ")
-                    break
-            break
+    """)
+        
+        while True:
+            operation = int(input("What do you want to do 1/2: "))
+            if operation < 1 or operation > 2:
+                print("enter a valid input")
+                continue
+            elif operation == -1:
+                break
+            elif operation == 1:
+                while True:
+                    upField = str(input("Enter the updated name field of the incomeField: "))
+                    if not upField:
+                        print("Enter a valid input please")
+                        continue
+                    else:
+                        try:    
+                            update(conn ,"incomeFields", "name" , f'{upField}' , "ifId" , idct[ifId])
+                        except:
+                            print("Somethings wrong")
+                        print("Name of field has been updated! ")
+                        break
+                break
 
-        else:
-            while True:
-                print("""
+            else:
+                while True:
+                    print("""
 Do you want to delete the field?
 1: Confirm
 2: Back
-""")
-                confirm = int(input("1/2: "))
-                if confirm < 1 or confirm > 2:
-                    print("enter a valid input")
-                    continue
-                elif confirm == 1:
-                    deleteRow(conn , "incomeFields" , "ifId" , ifId)
-                    print("Field has been deleted! ")
-                    break
-                elif confirm == 2:
-                    break
-            break
-                    
-
-
+    """)
+                    confirm = int(input("1/2: "))
+                    if confirm < 1 or confirm > 2:
+                        print("enter a valid input")
+                        continue
+                    elif confirm == 1:
+                        deleteRow(conn , "incomeFields" , "ifId" , idct[ifId])
+                        print("Field has been deleted! ")
+                        break
+                    elif confirm == 2:
+                        break
+                break
+    elif choice == 1:
+        #add an option to add income stream
+        while True:
+            newField = str(input("Enter the name of the new field: "))
+            if not newField:
+                print("Enter a valid input! ")
+                continue
+            else:
+                break
+        insert(conn , 'incomeFields' , '(name)' , newField)
+        
