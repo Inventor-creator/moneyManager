@@ -1,3 +1,5 @@
+import MManager.getStuff as getStuff
+
 
 def deleteRow(conn , tableName , whereDelete,wheredeleteValue):
     delCursor = conn.cursor()
@@ -47,8 +49,8 @@ def insert(con , *args):
 
 def logIncome(conn , *args):
     incomeCur = conn.cursor()
-    income = int(input("\n Logging income now, enter income: "))
-        
+    income = int(input("\nLogging income now, enter income: "))
+    
     if income < 0:
         print("Going Back")
         return    
@@ -58,18 +60,21 @@ def logIncome(conn , *args):
     getAllIncomeFields = 'SELECT * FROM IncomeFields;'
     incomeFields = incomeCur.execute(getAllIncomeFields).fetchall()
 
-    endstring = 'Enter your choice '
-
+    endstring = endstring = 'Enter your choice '
+    index = 1
+    idct = {}
     for field in incomeFields:
-        print(f"{field[0]} : {field[1]}")
-        endstring += f'{field[0]}|'
+        print(f"{index} : {field[1]}")
+        endstring += f"{index}|"
+        idct[index] = field[0]
+        index += 1
 
     endstring = endstring[:-1] + ": "
 
     while True:
         try:
             ifId = int(input(endstring))
-            if ifId > int(endstring[-3]):
+            if ifId > int(endstring[-3]) or ifId == 0:
                 raise
             elif ifId < 0:
                 print("going back \n")
@@ -80,25 +85,22 @@ def logIncome(conn , *args):
             continue
     cutSavings = incomeCur.execute('SELECT valSavings FROM currentAcc').fetchone()[0]
    
-    insert(conn , 'IncomeLog' , '(amt , month , year , ifId)' , income, 3, 2024 , ifId)
+   #add year and date here
+    insert(conn , 'IncomeLog' , '(amt , month , year , ifId)' , income, 3, 2024 , idct[ifId])
 
-    #fixed expenses here
-    #add date checker and then check another table to get if fixed expense has already been paid 
-    #for the month
-    getFixed = "SELECT * FROM FixedExpenses;"
 
-    fixed = incomeCur.execute(getFixed).fetchall()
+
     leftincome = income
-    for item in fixed:
-        leftincome -= item[2]
-
-    #this shit comes after fixed expenses
+    
+   
     savingsCut = leftincome * (cutSavings / 100)
     savings = int(incomeCur.execute("SELECT savings FROM currentAcc").fetchone()[0])
     savings += savingsCut
     update(conn , 'currentAcc' , 'savings' , savings , 'idx' , 1)
+
     #this comes after budget
     leftincome -= savingsCut
+    update(conn , 'currentAcc' , 'budget' ,getStuff.getBudget(conn).fetchone()[0] + leftincome , 'idx' , 1 )
 
     
 def setSavingsPercentage(conn):
@@ -233,3 +235,100 @@ Do you want to delete the field?
                 break
         insert(conn , 'incomeFields' , '(name)' , newField)
         
+def logExpense(conn):
+    from datetime import date
+
+    logExpenseCur = conn.cursor()
+    print("""
+1: Pay Fixed Expenses
+2: Log some other expense
+""")
+    while True:
+        choice = int(input("Enter your choice 1/2: "))
+
+        if choice < 0:
+            return
+        elif choice >2:
+            print("Enter a valid input! ")
+            continue
+        else:
+            break
+            
+    if choice == 1:
+        todaysDate = str(date.today()).split('-')
+
+        unpaidFixedQ = f"SELECT * FROM FixedLast WHERE paid = 0"
+        unpaidFixed = logExpenseCur.execute(unpaidFixedQ).fetchall()
+        print(unpaidFixed)
+        indexDict = {}
+        indexToOwed = {}
+        indexToName ={}
+        index = 1
+        print("Following stuff is not paid")
+        endstring = 'Choose which field you want: '
+        #check if due has passed for prev payment 
+        for fixedExpense in unpaidFixed:
+            indexDict[index] = fixedExpense
+            getFixedExpenseQ = f"SELECT * FROM FixedExpenses WHERE iFixed = {fixedExpense[0]}"
+            getFixedExpense = logExpenseCur.execute(getFixedExpenseQ).fetchone()
+
+            indexToName[index] = getFixedExpense[1]
+            indexToOwed[index] = getFixedExpense[2] * fixedExpense[5]
+
+            print(f"{index}: {indexToName[index]} - {indexToOwed[index]}")
+            endstring += f'{index}|'
+            index += 1
+        endstring = endstring[:-1] + ": "
+
+        while True:
+            try:
+                iFixed = int(input(endstring))
+                if iFixed > int(endstring[-3]) or iFixed == 0:
+                    raise
+                elif iFixed < 0:
+                    print("going back \n")
+                    return
+                break
+            except:
+                print("enter a valid input \n ")
+                continue
+        
+        print(f"selected {iFixed}: {indexToName[iFixed]} , owed- {indexToOwed[iFixed]}")
+        
+        payFrom = ""
+        temp = 1
+        id = {}
+        #add option to pay from savings or expense budget
+        if indexToOwed[iFixed] < getStuff.getSavings(conn).fetchone()[0] :
+            payFrom += f"\n{temp} Savings - {getStuff.getSavings(conn).fetchone()[0]} "
+            id[temp] = "savings"
+            temp += 1
+            
+        if indexToOwed[iFixed] < getStuff.getBudget(conn).fetchone()[0] :
+            payFrom += f"\n{temp} Budget - {getStuff.getBudget(conn).fetchone()[0]} "
+            id[temp] = "budget"
+        elif payFrom == "Pay from: ":
+            print("You are broke! ")
+            return
+       
+        print(payFrom)
+        
+        while True:
+            payChoice = int(input("\nEnter index of where u want to pay: "))
+            if payChoice < 0:
+                return
+            elif payChoice > temp:
+                print("Enter a valid choice! ")
+                continue
+            else:
+                break
+        
+       
+        if id[payChoice] == "savings":
+            update(conn , 'currentAcc' , 'savings' ,getStuff.getSavings(conn).fetchone()[0] - indexToOwed[iFixed] , 'idx' , 1 )
+        else:
+            update(conn , 'currentAcc' , 'budget' ,getStuff.getBudget(conn).fetchone()[0] - indexToOwed[iFixed] , 'idx' , 1 )
+
+
+    return
+#update(conn , 'currentAcc' , 'savings' ,getSavings(conn).fetchone()[0] - indexToOwed[iFixed] , 'idx' , 1 )

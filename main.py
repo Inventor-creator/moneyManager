@@ -1,6 +1,8 @@
 
 import sqlite3
 import os
+
+from matplotlib import table
 import MManager.tableOps as tableOps
 import MManager.getStuff as getStuff
 import MManager.datastuff as dataStuff
@@ -23,7 +25,7 @@ while True:
 3: Get Stats
 4: Edit Spread Settings For Wishlist and Savings
 5: Log income
-6: Change Income streams 
+6: Income stream actions
 7: Wishlist actions *
 0: Exit
 """)
@@ -43,6 +45,9 @@ while True:
             case 1:
                 print("Your Savings are: " ,getStuff.getSavings(connection).fetchone()[0])
                 print("Your Expense budget is: " ,getStuff.getBudget(connection).fetchone()[0])
+            case 2:
+                #add edit fixed expenses
+                tableOps.logExpense(connection)
             case 3:
                 print("""
 1: Get income per income stream

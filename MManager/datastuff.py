@@ -31,7 +31,7 @@ def graphIncomePerIncomeStream(conn):
 def expenseSummary(conn , *args):
 
     cursor = conn.cursor()
-
     
-
-    return
+    #list all prev expenses
+    #get expenses per 'For'
+    return  
